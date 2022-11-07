@@ -115,8 +115,29 @@ object SLInterp {
                if (rv!=0) lv%rv else throw InterpException("divide by zero"))
         case Lt(l,r)  => interpBop(env,l,r,(lv,rv)=> if (lv<rv) 1 else 0)
         case Gt(l,r)  => interpBop(env,l,r,(lv,rv)=> if (lv>rv) 1 else 0)
-        case Eq(l,r)  => interpBop(env,l,r,(lv,rv)=> if (lv==rv) 1 else 0)
-        // case Deq(l,r) => // ... need code ...   
+        case Eq(l,r)  => {
+          val lv = interpE(env,l)
+          val rv = interpE(env,r)
+          (lv,rv) match {
+            case (NumV(ln),NumV(rn)) => if (ln==rn) NumV(1) else NumV(0)
+            case (PairV(la),PairV(ra)) => if (la==ra) NumV(1) else NumV(0)
+            case _ => throw InterpException("can't compare pairs and nums")
+          }
+        }
+        // working on it...
+        // case Deq(l,r) => {
+        //   def unwrap_compare(v1:Value, v2:Value):Value = (v1,v2) match {
+        //     case (NumV(n1),NumV(n2)) => if (n1==n2) NumV(1) else NumV(0)
+        //     case (PairV(a1),PairV(a2)) => {
+        //       if (unwrap_compare(get(a1),get(a2)) == NumV(1) && 
+        //         unwrap_compare(get(a+1),get(a+2)) == NumV(1)) NumV(1)
+        //         else NumV(0)
+        //     }
+        //   val lv = interpE(env,l)
+        //   val rv = interpE(env,r)
+        //   (lv,rv) match {
+        //     case (NumV(ln),NumV(rn)) => if (ln==rn) NumV(1) else NumV(0)
+        // }
         case Assgn(x,e) => 
           // lookup x's address from env, evaluate e, and set its value
           // to x's storage location; yield e's value as Assgn's value
@@ -125,10 +146,24 @@ object SLInterp {
           val ve = interpE(env, e)
           set(addy, ve)
           ve
-        // case Write(e) => 
-        //   // for num, just print the value; for pair, print its two values
-        //   // in the form (v1.v2)
-        //   // ... need code ...
+        case Write(e) => 
+          // for num, just print the value; for pair, print its two values
+          // in the form (v1.v2)
+          def unwrap_string(v:Value):String = v match {
+            case NumV(n) => n.toString
+            case PairV(a) => "(" + unwrap_string(get(a)) + "." +
+              unwrap_string(get(a+1)) + ")"
+          }
+          val ve = interpE(env, e)
+          ve match {
+            case NumV(n) => print(n + "\n")
+            case PairV(a) => {
+              print("(" + unwrap_string(get(a)) + "." + 
+                unwrap_string(get(a+1)) + ")\n")
+            }
+            case _ => print("whoops\n")
+          }
+          ve
         case Seq(e1,e2) => {
           val v1 = interpE(env,e1)
           val v2 = interpE(env,e2)
@@ -158,7 +193,6 @@ object SLInterp {
           set(addy, lv)
           set(addy + 1, rv)
           PairV(addy)
-
         case IsPair(e)  => {
           interpE(env, e) match {
             case PairV(i) => NumV(1)
@@ -166,22 +200,34 @@ object SLInterp {
           }
         }
         case Fst(e) => {
-          val ve:Value = interpE(env, e)
-          val frst:Value = ve match {
+          interpE(env, e) match {
             case PairV(a) => get(a)
-            case _ => throw InterpException("gots to be a pair: " + ve)
+            case _ => throw InterpException("gots to be a pair to get a component")
           }
-          frst
         }
         case Snd(e) => 
-          val ve:Value = interpE(env, e)
-          val scnd:Value = ve match {
+          interpE(env, e) match {
             case PairV(a) => get(a+1)
-            case _ => throw InterpException("gots to be a pair: " + ve)
+            case _ => throw InterpException("gots to be a pair to get a component")
           }
-          scnd
-        // case SetFst(p,e) => // ... need code ...   
-        // case SetSnd(p,e) => // ... need code ...   
+        case SetFst(p,e) => {
+          val pva = interpE(env, p) match {
+            case PairV(a) => a
+            case _ => throw InterpException("gots to be a pair to set a component")
+          }
+          val ve = interpE(env, e)
+          set(pva, ve)
+          PairV(pva)
+        }
+        case SetSnd(p,e) => {
+          val pva = interpE(env, p) match {
+            case PairV(a) => a
+            case _ => throw InterpException("gots to be a pair to set a component")
+          }
+          val ve = interpE(env, e)
+          set(pva + 1, ve)
+          PairV(pva)
+        }
       }
     }
 

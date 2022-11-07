@@ -113,15 +113,18 @@ object SLInterp {
                if (rv!=0) lv/rv else throw InterpException("divide by zero"))
         case Rem(l,r) => interpBop(env,l,r,(lv,rv)=> 
                if (rv!=0) lv%rv else throw InterpException("divide by zero"))
-        // case Lt(l,r)  => // ... need code ...   
-        // case Gt(l,r)  => // ... need code ...   
-        // case Eq(l,r)  => // ... need code ...   
+        case Lt(l,r)  => interpBop(env,l,r,(lv,rv)=> if (lv<rv) 1 else 0)
+        case Gt(l,r)  => interpBop(env,l,r,(lv,rv)=> if (lv>rv) 1 else 0)
+        case Eq(l,r)  => interpBop(env,l,r,(lv,rv)=> if (lv==rv) 1 else 0)
         // case Deq(l,r) => // ... need code ...   
-        // case Assgn(x,e) => 
-        //   // lookup x's address from env, evaluate e, and set its value
-        //   // to x's storage location; yield e's value as Assgn's value
-        //   // (no need to update env...why?)
-        //   // ... need code ...
+        case Assgn(x,e) => 
+          // lookup x's address from env, evaluate e, and set its value
+          // to x's storage location; yield e's value as Assgn's value
+          // (no need to update env...why?)
+          val addy:Addr = getAddr(env, x)
+          val ve = interpE(env, e)
+          set(addy, ve)
+          ve
         // case Write(e) => 
         //   // for num, just print the value; for pair, print its two values
         //   // in the form (v1.v2)
@@ -144,16 +147,39 @@ object SLInterp {
           set(addy, vb)
           val ne = env + (x -> addy)
           val ve = interpE(ne, e)
-          // env.remove(x)
           stack.pop()
           ve
-        // case Pair(l,r)  => 
-        //   // allocate 2 units of space in the heap; store the pairs' two
-        //   // values into the space (use set()); return a pair value
-        //   // ... add code ...
-        // case IsPair(e)  => // ... need code ...   
-        // case Fst(e) => // ... need code ...   
-        // case Snd(e) => // ... need code ...   
+        case Pair(l,r)  => 
+          // allocate 2 units of space in the heap; store the pairs' two
+          // values into the space (use set()); return a pair value
+          val lv:Value = interpE(env,l)
+          val rv:Value = interpE(env,r)
+          val addy:Addr = heap.allocate(2)
+          set(addy, lv)
+          set(addy + 1, rv)
+          PairV(addy)
+
+        case IsPair(e)  => {
+          interpE(env, e) match {
+            case PairV(i) => NumV(1)
+            case _ => NumV(0)
+          }
+        }
+        case Fst(e) => {
+          val ve:Value = interpE(env, e)
+          val frst:Value = ve match {
+            case PairV(a) => get(a)
+            case _ => throw InterpException("gots to be a pair: " + ve)
+          }
+          frst
+        }
+        case Snd(e) => 
+          val ve:Value = interpE(env, e)
+          val scnd:Value = ve match {
+            case PairV(a) => get(a+1)
+            case _ => throw InterpException("gots to be a pair: " + ve)
+          }
+          scnd
         // case SetFst(p,e) => // ... need code ...   
         // case SetSnd(p,e) => // ... need code ...   
       }

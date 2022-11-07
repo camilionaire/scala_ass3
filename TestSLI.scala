@@ -20,17 +20,17 @@ class TestSLI extends FunSuite {
 
   test ("Let") {
     assertResult(3){SLInterp("(let x 1 (let y 2 (+ x y)))")}
-    // assertResult(1){SLInterp("(let x 1 (let y 2 (seq (:= y x) y)))")}
+    assertResult(1){SLInterp("(let x 1 (let y 2 (seq (:= y x) y)))")}
     assertResult(1){SLInterp("(let x 1 (seq (let x 2 x) x))")}
     assertResult(3){SLInterp("(let x (let x 2 (+ x 1)) x)")}
   }
 
-  // test ("Pair") {
-  //   assertResult(1){SLInterp("(let x (pair 1 2) (pair? x))")}
-  //   assertResult(1){SLInterp("(let x (pair 1 2) (< (#1 x) (#2 x)))")}
-  //   assertResult(2){SLInterp("(let y (let x 1 (pair x (+ x 1))) (#2 y))")}
-  //   assertResult(1){SLInterp("(let x (let x 1 (pair x (+ x 1))) (#1 x))")}
-  // }
+  test ("Pair") {
+    assertResult(1){SLInterp("(let x (pair 1 2) (pair? x))")}
+    assertResult(1){SLInterp("(let x (pair 1 2) (< (#1 x) (#2 x)))")}
+    assertResult(2){SLInterp("(let y (let x 1 (pair x (+ x 1))) (#2 y))")}
+    assertResult(1){SLInterp("(let x (let x 1 (pair x (+ x 1))) (#1 x))")}
+  }
 
   // test("Set#1/#2") {
   //   assertResult(3){SLInterp("(#1 (set#2 (pair 3 1) 7))")}

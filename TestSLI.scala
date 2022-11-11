@@ -67,18 +67,18 @@ class TestSLI extends FunSuite {
     assertConsoleOutput("(1.(2.0))\n", "(seq (write (pair 1 (pair 2 0))) 0)")
   }
 
-  // test ("Exceptions") {
-  //   intercept[InterpException]{SLInterp("(#1 1)")}
-  //   intercept[InterpException]{SLInterp("(#2 1)")}
-  //   intercept[InterpException]{SLInterp("(set#1 1 2)")}
-  //   intercept[InterpException]{SLInterp("(set#2 1 2)")}
-  //   intercept[InterpException]{SLInterp("(+ x 4)")}
-  //   intercept[InterpException]{SLInterp("(+ 3 (pair 1 2))")}
-  //   intercept[InterpException]{SLInterp("(< 3 (pair 1 2))")}
-  //   intercept[InterpException]{SLInterp("(if (pair 1 2) 1 2)")}
-  //   intercept[InterpException]{SLInterp("(while (pair 1 2) 1)")}
-  //   intercept[InterpException]{SLInterp("(== 5 (pair 1 2))")}
-  //   intercept[InterpException]{SLInterp("(pair 1 2)")}
-  // }
+  test ("Exceptions") {
+    intercept[InterpException]{SLInterp("(#1 1)")}
+    intercept[InterpException]{SLInterp("(#2 1)")}
+    intercept[InterpException]{SLInterp("(set#1 1 2)")}
+    intercept[InterpException]{SLInterp("(set#2 1 2)")}
+    intercept[InterpException]{SLInterp("(+ x 4)")}
+    intercept[InterpException]{SLInterp("(+ 3 (pair 1 2))")}
+    intercept[InterpException]{SLInterp("(< 3 (pair 1 2))")}
+    intercept[InterpException]{SLInterp("(if (pair 1 2) 1 2)")}
+    intercept[InterpException]{SLInterp("(while (pair 1 2) 1)")}
+    intercept[InterpException]{SLInterp("(== 5 (pair 1 2))")}
+    intercept[InterpException]{SLInterp("(pair 1 2)")}
+  }
 	
 }

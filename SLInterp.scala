@@ -174,8 +174,24 @@ object SLInterp {
           val v2 = interpE(env,e2)
           v2
         }
-        // case If(c,t,e)  => // ... need code ...   
-        // case While(c,b) => // ... need code ...   
+        case If(c,t,e)  => {
+          val vc = interpE(env, c)
+          vc match {
+            case NumV(n) => if (n == 0) interpE(env, e) else interpE(env, t)
+            case _ => throw InterpException("value tested needs to be an int")
+          }
+        }
+        case While(c,b) => {
+          val vc = interpE(env, c)
+          vc match {
+            case NumV(0) => NumV(0)
+            case NumV(a) => {
+              interpE(env, b)
+              interpE(env, While(c,b))
+            }
+            case _ => throw InterpException("value tested needs to be an int")
+          }
+        }
         case Let(x,b,e) =>
           // evaluate b and bind it's value to x, and store it on the
           // stack (use push() to get a stack address and set() to store

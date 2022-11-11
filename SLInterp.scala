@@ -2,6 +2,9 @@
 //
 // Usage: linux> scala SLInterp <source file>
 //
+// Name: Camilo Schaser-Hughes
+// CS 558 Prog Langs, Prof. Jingke Li
+// November 11, 2022
 import ScopeLang._
 
 object SLInterp {
@@ -113,8 +116,10 @@ object SLInterp {
                if (rv!=0) lv/rv else throw InterpException("divide by zero"))
         case Rem(l,r) => interpBop(env,l,r,(lv,rv)=> 
                if (rv!=0) lv%rv else throw InterpException("divide by zero"))
+        // throws error if not num, returns 1 if true, 0 false.
         case Lt(l,r)  => interpBop(env,l,r,(lv,rv)=> if (lv<rv) 1 else 0)
         case Gt(l,r)  => interpBop(env,l,r,(lv,rv)=> if (lv>rv) 1 else 0)
+        // interps both left and right, then runs them through a match statement
         case Eq(l,r)  => {
           val lv = interpE(env,l)
           val rv = interpE(env,r)
@@ -124,8 +129,9 @@ object SLInterp {
             case _ => throw InterpException("can't compare pairs and nums")
           }
         }
-        // working on it...
         case Deq(l,r) => {
+          // recursion function that checks for equality on nums
+          // or recurses left and right for pairs, or zero for non matching
           def unwrap_compare(v1:Value, v2:Value):Value = (v1,v2) match {
             case (NumV(n1),NumV(n2)) => if (n1==n2) NumV(1) else NumV(0)
             case (PairV(a1),PairV(a2)) => {
@@ -135,6 +141,7 @@ object SLInterp {
             }
             case _ => NumV(0)
           }
+          // evaluates left and right then compares
           val lv = interpE(env,l)
           val rv = interpE(env,r)
           (lv,rv) match {
@@ -147,6 +154,8 @@ object SLInterp {
           // lookup x's address from env, evaluate e, and set its value
           // to x's storage location; yield e's value as Assgn's value
           // (no need to update env...why?)
+          // gets address of x from env, interps e and sets the address
+          // since x already points to addy, no need to update env.
           val addy:Addr = getAddr(env, x)
           val ve = interpE(env, e)
           set(addy, ve)
@@ -154,11 +163,13 @@ object SLInterp {
         case Write(e) => 
           // for num, just print the value; for pair, print its two values
           // in the form (v1.v2)
+          // recursion function for printing pairs and nums
           def unwrap_string(v:Value):String = v match {
             case NumV(n) => n.toString
             case PairV(a) => "(" + unwrap_string(get(a)) + "." +
               unwrap_string(get(a+1)) + ")"
           }
+          // interps and then prints out recursively
           val ve = interpE(env, e)
           ve match {
             case NumV(n) => print(n + "\n")
@@ -169,19 +180,21 @@ object SLInterp {
             case _ => print("whoops\n")
           }
           ve
-        case Seq(e1,e2) => {
+        case Seq(e1,e2) => { // was alrady here
           val v1 = interpE(env,e1)
           val v2 = interpE(env,e2)
           v2
         }
         case If(c,t,e)  => {
           val vc = interpE(env, c)
+          // if statement becomes a match with exception for pairv's
           vc match {
             case NumV(n) => if (n == 0) interpE(env, e) else interpE(env, t)
             case _ => throw InterpException("value tested needs to be an int")
           }
         }
         case While(c,b) => {
+          // interps c and then matches to either recursive call, 0 or err
           val vc = interpE(env, c)
           vc match {
             case NumV(0) => NumV(0)
@@ -198,6 +211,8 @@ object SLInterp {
           // the value); x's binding needs to be added to env for 
           // evaluating e (only); x's value needs to be removed before
           // returning (use pop())
+          // interps and pushes to addy, adds to new env for interpreting e
+          // pops and returns
           val vb:Value = interpE(env, b)
           val addy:Addr = stack.push()
           set(addy, vb)
@@ -220,6 +235,7 @@ object SLInterp {
             case _ => NumV(0)
           }
         }
+        // gets from a first slot in pair or throws error
         case Fst(e) => {
           interpE(env, e) match {
             case PairV(a) => get(a)
@@ -231,6 +247,7 @@ object SLInterp {
             case PairV(a) => get(a+1)
             case _ => throw InterpException("gots to be a pair to get a component")
           }
+          // sets first slot or throws error
         case SetFst(p,e) => {
           val pva = interpE(env, p) match {
             case PairV(a) => a

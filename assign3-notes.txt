@@ -1,0 +1,18 @@
+Name: Camilo Schaser-Hughes
+Date: November 11, 2022
+Class: CS 558 Programming Languages
+Prof. Jingke Li
+
+Assignment #3
+
+    This assignment went well I think.  Mostly it was just the same
+stuff, reading the code and understanding everything.  So I read the code
+and tried to understand it.  Sat with it for a while.  Came back, 
+tried to write the let function, failed... re read the code and sat with
+it for some more time.  Once figured out let, then all the rest sort
+of fell into place.  Assign came through, as did first and second, etc.
+Did a recursive call for write which helped to create the recursive
+call for deq.  Deq was a little tricky, but mostly it was just about
+reading the instruction specifics and implementing it.
+
+

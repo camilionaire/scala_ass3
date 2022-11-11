@@ -125,19 +125,24 @@ object SLInterp {
           }
         }
         // working on it...
-        // case Deq(l,r) => {
-        //   def unwrap_compare(v1:Value, v2:Value):Value = (v1,v2) match {
-        //     case (NumV(n1),NumV(n2)) => if (n1==n2) NumV(1) else NumV(0)
-        //     case (PairV(a1),PairV(a2)) => {
-        //       if (unwrap_compare(get(a1),get(a2)) == NumV(1) && 
-        //         unwrap_compare(get(a+1),get(a+2)) == NumV(1)) NumV(1)
-        //         else NumV(0)
-        //     }
-        //   val lv = interpE(env,l)
-        //   val rv = interpE(env,r)
-        //   (lv,rv) match {
-        //     case (NumV(ln),NumV(rn)) => if (ln==rn) NumV(1) else NumV(0)
-        // }
+        case Deq(l,r) => {
+          def unwrap_compare(v1:Value, v2:Value):Value = (v1,v2) match {
+            case (NumV(n1),NumV(n2)) => if (n1==n2) NumV(1) else NumV(0)
+            case (PairV(a1),PairV(a2)) => {
+              if (unwrap_compare(get(a1),get(a2)) == NumV(1) && 
+                unwrap_compare(get(a1+1),get(a2+1)) == NumV(1)) NumV(1)
+                else NumV(0)
+            }
+            case _ => NumV(0)
+          }
+          val lv = interpE(env,l)
+          val rv = interpE(env,r)
+          (lv,rv) match {
+            case (NumV(ln),NumV(rn)) => unwrap_compare(lv,rv)
+            case (PairV(lp),PairV(rp)) => unwrap_compare(lv, rv)
+            case _ => NumV(0)
+          }
+        }
         case Assgn(x,e) => 
           // lookup x's address from env, evaluate e, and set its value
           // to x's storage location; yield e's value as Assgn's value
